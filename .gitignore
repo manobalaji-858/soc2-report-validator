@@ -3,6 +3,7 @@
 .env.*
 *.key
 secrets.toml
+.streamlit/secrets.toml
 
 # Python
 __pycache__/
@@ -16,3 +17,4 @@ env/
 Thumbs.db
 .idea/
 .vscode/
+.claude

@@ -25,14 +25,29 @@ import streamlit as st
 # ----------------------------------------------------------------------
 # Config
 # ----------------------------------------------------------------------
-# Swap MODEL for any chat model served on HF Inference. If it is gated or
-# unavailable, the app automatically falls back to rule-based extraction.
-MODEL = "meta-llama/Llama-3.1-8B-Instruct"
-HF_TOKEN = os.environ.get("HF_TOKEN")  # set as a Space secret
-TODAY = dt.date.today()
-
 st.set_page_config(page_title="SOC 2 Trust Services Evaluator",
                    page_icon="🛡️", layout="centered")
+
+
+def _secret(key, default=None):
+    """Read from st.secrets (Streamlit Cloud) first, then os.environ."""
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:  # noqa: BLE001 - no secrets.toml present
+        pass
+    return os.environ.get(key, default)
+
+
+# MODEL must show an "Inference Providers" panel on its HF model page. If it is
+# gated or unavailable, the app automatically falls back to rule-based extraction.
+HF_TOKEN = _secret("HF_TOKEN")
+MODEL = _secret("MODEL", "meta-llama/Llama-3.1-8B-Instruct")
+PROVIDER = _secret("PROVIDER", "auto")
+# Optional: Groq's free tier (OpenAI-compatible). Tried before HF when set.
+GROQ_API_KEY = _secret("GROQ_API_KEY")
+GROQ_MODEL = _secret("GROQ_MODEL", "llama-3.1-8b-instant")
+TODAY = dt.date.today()
 
 # ----------------------------------------------------------------------
 # Trust Services Criteria catalogue (AICPA TSC 2017, rev.)
@@ -231,12 +246,23 @@ def rule_extract(text):
     }
 
 
-def ai_extract(text):
-    """Call an HF-hosted model; raise on any failure so caller can fall back."""
+def ai_backends():
+    """(label, client kwargs, model) for each configured AI provider, in order."""
+    backends = []
+    if GROQ_API_KEY:
+        backends.append(("Groq", {"base_url": "https://api.groq.com/openai/v1",
+                                  "api_key": GROQ_API_KEY}, GROQ_MODEL))
+    if HF_TOKEN:
+        backends.append(("HF", {"provider": PROVIDER, "api_key": HF_TOKEN}, MODEL))
+    return backends
+
+
+def ai_extract(text, client_kwargs, model):
+    """Call a hosted chat model; raise on any failure so caller can fall back."""
     from huggingface_hub import InferenceClient
-    client = InferenceClient(provider="hf-inference", api_key=HF_TOKEN)
+    client = InferenceClient(**client_kwargs)
     resp = client.chat.completions.create(
-        model=MODEL,
+        model=model,
         messages=[{"role": "user", "content": EXTRACT_PROMPT + text[:6000]}],
         max_tokens=600, temperature=0.1,
     )
@@ -245,19 +271,41 @@ def ai_extract(text):
     start, end = raw.find("{"), raw.rfind("}")
     data = json.loads(raw[start:end + 1])
     data.setdefault("tsc_categories", ["Security"])
-    data["_method"] = "AI (" + MODEL.split("/")[-1] + ")"
     return data
 
 
+def ai_error_reason(e):
+    """Plain-English reason an AI call failed, for the on-screen fallback note."""
+    status = getattr(getattr(e, "response", None), "status_code", None)
+    msg = str(e).lower()
+    if status == 401:
+        return "invalid or revoked API key (401)"
+    if status == 402:
+        return "monthly credits exhausted (402)"
+    if status == 403:
+        return "key lacks inference permission (403)"
+    if status == 429:
+        return "rate limited (429)"
+    if "model_not_supported" in msg or status == 404:
+        return "model not served for this key"
+    if isinstance(e, (json.JSONDecodeError, ValueError)):
+        return "model returned unparseable output"
+    return type(e).__name__ + (" (%s)" % status if status else "")
+
+
 def extract(text):
-    if HF_TOKEN:
+    reasons = []
+    for label, kwargs, model in ai_backends():
         try:
-            return ai_extract(text)
+            data = ai_extract(text, kwargs, model)
+            data["_method"] = "AI (%s · %s)" % (label, model.split("/")[-1])
+            return data
         except Exception as e:  # noqa: BLE001 - demo resilience
-            res = rule_extract(text)
-            res["_method"] = "rule-based (AI unavailable: %s)" % type(e).__name__
-            return res
-    return rule_extract(text)
+            reasons.append("%s: %s" % (label, ai_error_reason(e)))
+    res = rule_extract(text)
+    if reasons:
+        res["_method"] = "rule-based (AI unavailable — %s)" % "; ".join(reasons)
+    return res
 
 
 def read_pdf(uploaded):
@@ -462,7 +510,8 @@ elif st.session_state.step == 3:
         "<span class='pill crit-ok'>%s</span>" % c for c in required),
         unsafe_allow_html=True)
 
-    with st.expander("See the specific criteria that must be satisfied"):
+    with st.expander("See the specific criteria that must be satisfied",
+                     expanded=True):
         st.markdown("**Security — Common Criteria (always in scope)**")
         for k, v in COMMON_CRITERIA.items():
             st.markdown("- `%s` %s" % (k, v))
@@ -487,28 +536,36 @@ elif st.session_state.step == 3:
 elif st.session_state.step == 4:
     st.subheader("4 · Validate with a SOC 2 report")
     st.caption("Upload the vendor's SOC 2 / SOC 3 report, or load the sample.")
-    if not HF_TOKEN:
-        st.warning("No HF_TOKEN secret set — using the rule-based extractor. "
-                   "Add an HF_TOKEN Space secret to enable AI extraction.")
+    if not ai_backends():
+        st.warning("No AI key set — using the rule-based extractor. Add "
+                   "GROQ_API_KEY or HF_TOKEN in the app's Secrets to enable "
+                   "AI extraction.")
 
     up = st.file_uploader("SOC 2 / SOC 3 report (PDF)", type=["pdf"])
     use_sample = st.button("↧ Load sample synthetic report instead")
 
+    # Buttons are only True for the rerun they were clicked in, so the
+    # extraction is kept in session state; uploads re-extract only when new.
     text = None
     if use_sample:
         text = SAMPLE_SOC2
-        st.session_state.a["evidence_name"] = "Sample synthetic SOC 2 (NimbusCRM)"
-    elif up is not None:
+        a["evidence_key"] = "sample"
+        a["evidence_name"] = "Sample synthetic SOC 2 (NimbusCRM)"
+    elif up is not None and a.get("evidence_key") != (up.name, up.size):
         try:
             text = read_pdf(up)
-            st.session_state.a["evidence_name"] = up.name
+            a["evidence_key"] = (up.name, up.size)
+            a["evidence_name"] = up.name
         except Exception as e:  # noqa: BLE001
             st.error("Could not read that PDF: %s" % e)
 
     if text:
         with st.spinner("Extracting report attributes..."):
             a["extracted"] = extract(text)
-        st.success("Extracted using: %s" % a["extracted"]["_method"])
+
+    if a.get("extracted"):
+        st.success("%s — extracted using: %s"
+                   % (a["evidence_name"], a["extracted"]["_method"]))
         st.json({k: v for k, v in a["extracted"].items()
                  if not k.startswith("_")})
         if st.button("Next → Results", type="primary"):
