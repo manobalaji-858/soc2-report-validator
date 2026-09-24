@@ -1000,6 +1000,88 @@ table.mx td.q{font-size:.76rem;color:#4B5563;max-width:420px}
   color:var(--green);font-weight:700;font-size:.7rem;display:flex;
   align-items:center;justify-content:center}
 .foot{text-align:center;color:var(--muted);font-size:.74rem;margin-top:26px}
+.tabs-m{display:none}
+.card-b > img{display:block;margin:0 auto}
+[data-testid="stMarkdownContainer"] table{display:block;overflow-x:auto}
+
+/* ---------- tablet: 641–1100px ---------- */
+@media (max-width:1100px){
+  .block-container{padding-left:1.25rem;padding-right:1.25rem}
+  .tabs{gap:16px}
+  .tabs span{font-size:.76rem}
+  .st-key-grid4 [data-testid="stHorizontalBlock"],
+  .st-key-grid3 [data-testid="stHorizontalBlock"]{flex-wrap:wrap}
+  .st-key-grid4 [data-testid="stColumn"],
+  .st-key-grid3 [data-testid="stColumn"]{min-width:calc(50% - 1rem) !important}
+  [class*="st-key-stack_"] [data-testid="stHorizontalBlock"]{flex-wrap:wrap}
+  [class*="st-key-stack_"] > div > [data-testid="stHorizontalBlock"] >
+    [data-testid="stColumn"]{min-width:100% !important}
+}
+@media (max-width:900px){
+  [class*="st-key-split_"] > div > [data-testid="stHorizontalBlock"]{flex-wrap:wrap}
+  [class*="st-key-split_"] > div > [data-testid="stHorizontalBlock"] >
+    [data-testid="stColumn"]{min-width:100% !important}
+}
+
+/* ---------- phone: ≤ 640px ---------- */
+@media (max-width:640px){
+  .block-container{padding:.6rem .85rem 2rem}
+  .nav{padding:10px 14px;border-radius:10px;margin-bottom:14px;gap:8px}
+  .brand{font-size:1.02rem}
+  .dev{font-size:.6rem;padding:2px 8px}
+  .av{width:26px;height:26px;font-size:.8rem}
+  .by{font-size:.72rem}
+  .hero{margin:0 0 6px}
+  .hero .ico img{width:34px !important}
+  .hero h1{font-size:1.25rem;line-height:1.3}
+  .crumb{font-size:.66rem;line-height:1.5}
+  .tabs{display:none}
+  .tabs-m{display:block;margin:10px 0 16px;font-size:.8rem;color:var(--muted)}
+  .tabs-m b{color:var(--ink)}
+  .pbar{height:5px;background:var(--track);border-radius:3px;margin-top:6px;
+    overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--green);border-radius:3px}
+  .h-page{font-size:1.35rem}
+  .sub{font-size:.84rem}
+  .banner{padding:18px 18px;border-radius:12px}
+  .banner h2{font-size:1.2rem;line-height:1.3}
+  .banner p{font-size:.86rem}
+  .card-h{padding:12px 14px;font-size:.95rem}
+  .card-b{padding:14px}
+  .kpis{gap:16px 22px}
+  .kpi span{font-size:1.15rem}
+  .row{gap:14px;justify-content:center}
+  .tour{padding:14px 16px}
+  .tour-t{font-size:.95rem}
+  .tour p{font-size:.8rem}
+  .find{gap:8px}
+  .sev{min-width:48px}
+  /* button rows stay side by side instead of stacking */
+  [class*="st-key-btnrow"] [data-testid="stHorizontalBlock"]{flex-wrap:nowrap;
+    gap:.5rem}
+  [class*="st-key-btnrow"] [data-testid="stColumn"]{min-width:0 !important;
+    flex:1 1 0 !important;width:auto !important}
+  .st-key-btnrow_nav [data-testid="stColumn"]:nth-child(2),
+  .st-key-btnrow_end [data-testid="stColumn"]:nth-child(2),
+  .st-key-btnrow_tour [data-testid="stColumn"]:nth-child(4){display:none}
+  [class*="st-key-btnrow"] button{padding-left:.4rem;padding-right:.4rem}
+  [class*="st-key-btnrow"] button p{font-size:.8rem;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  /* tables become stacked cards */
+  table.mx{min-width:0}
+  table.mx, table.mx tbody, table.mx tr, table.mx td{display:block;width:100%}
+  table.mx tr:has(th){display:none}
+  table.mx tr{border:1px solid var(--line);border-radius:10px;padding:4px 12px;
+    margin-bottom:10px;background:#fff}
+  table.mx td{border-bottom:1px solid #F1F2F4;padding:8px 0}
+  table.mx tr td:last-child{border-bottom:none}
+  table.mx td[data-l]::before{content:attr(data-l);display:block;font-size:.6rem;
+    font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:3px}
+  table.mx td.q{max-width:none}
+  .tgs{grid-template-columns:1fr}
+  [data-testid="stButtonGroup"] button{min-height:42px}
+}
 .stButton button[kind="primary"]{background:var(--green);border-color:var(--green);
   font-weight:600}
 .stButton button[kind="primary"]:hover{background:#17924A;border-color:#17924A}
@@ -1130,7 +1212,7 @@ def header(step):
         % ("on" if i == step else "done" if i < step else "",
            "✓ " if i < step else "", n)
         for i, n in enumerate(STEPS))
-    html("<div class='nav'><div class='brand'>trust<b>·</b>evaluator</div>"
+    html("<div class='nav'><div class='brand'>vendor<b>·</b>trust<b>·</b>evaluator</div>"
          "<div class='nav-r'>"
          "<span class='dev'>● IN DEVELOPMENT</span><div class='by'>"
          "<div class='av'>%s</div><div><small>Designed by</small>%s</div></div>"
@@ -1138,8 +1220,11 @@ def header(step):
          "<div class='hero'><span class='ico'>%s</span><h1>Based on SOC 2 and "
          "ISO 27001</h1><div class='crumb'>Vendor assessments › SOC 2 › "
          "ISO 27001 › Trust Services Criteria › <b>%s</b></div></div>"
-         "<div class='tabs'>%s</div>"
-         % (DESIGNER[0], DESIGNER, shield, STEPS[step], tabs))
+         "<div class='tabs'>%s</div>%s"
+         % (DESIGNER[0], DESIGNER, shield, STEPS[step], tabs, (
+             "<div class='tabs-m'><div>Step %d of 6 · <b>%s</b></div>"
+             "<div class='pbar'><i style='width:%d%%'></i></div></div>"
+             % (step, STEPS[step], round(100 * step / 6)) if step else "")))
 
 
 TIER_GUIDE = {
@@ -1212,7 +1297,7 @@ def page_title(title, sub):
 
 def nav_buttons(back=None, back_label="← Back", nxt=None, next_label="",
                 next_disabled=False):
-    c1, _, c2 = st.columns([1, 2, 1])
+    c1, _, c2 = st.container(key="btnrow_nav").columns([1, 2, 1])
     if back is not None and c1.button(back_label, use_container_width=True):
         goto(back)
     if nxt is not None and c2.button(next_label, type="primary",
@@ -1330,16 +1415,17 @@ def tour_panel(step):
          "<span class='tour-dots'>%s</span></div><div class='tour-t'>Stop %d "
          "of 6 — %s</div><p>%s</p></div>"
          % (sc["label"], dots, step, title, body))
-    c1, c2, c3, _ = st.columns([1.1, 1.1, 1, 1.8])
+    c1, c2, c3, _ = st.container(key="btnrow_tour").columns(
+        [1.1, 1.1, 1, 1.8])
     if step < 6:
         if c1.button("Next stop →", type="primary", use_container_width=True,
                      key="tour_next"):
             goto(step + 1)
     else:
-        if c1.button("◀ Walk through the steps", use_container_width=True,
+        if c1.button("◀ Walk through", use_container_width=True,
                      key="tour_walk"):
             goto(1)
-    if c2.button("Try another vendor", use_container_width=True,
+    if c2.button("Other vendor", use_container_width=True,
                  key="tour_other"):
         goto(0)
     if c3.button("Exit tour", use_container_width=True, key="tour_exit"):
@@ -1403,7 +1489,7 @@ elif step == 1:
     page_title("Vendor Scope for Access and Data",
                "Who the vendor is, what they touch, where the data goes and "
                "what the contract lets you verify.")
-    left, right = st.columns([1.5, 1])
+    left, right = st.container(key="split_s1").columns([1.5, 1])
     with left:
         with st.container(border=True):
             st.markdown("**Vendor profile**")
@@ -1521,7 +1607,7 @@ elif step == 2:
     page_title("Inherent Risk Questionnaire",
                "Exposure before any controls. These answers refine the TSC "
                "scope and can escalate the vendor's tier.")
-    left, right = st.columns([1.5, 1])
+    left, right = st.container(key="split_s2").columns([1.5, 1])
     with left:
         with st.container(border=True):
             st.markdown("**Service dependency**")
@@ -1598,7 +1684,7 @@ elif step == 3:
                "Categories and criteria %s's SOC 2 must cover."
                % (a.get("vendor") or "the vendor"))
 
-    left, right = st.columns([2, 1])
+    left, right = st.container(key="split_s3").columns([2, 1])
     with left:
         counts = [(c, sum(1 for r in crit_rows if r[0] == c)) for c in required]
         ring = donut([(n, CAT_COLOR[c]) for c, n in counts],
@@ -1690,7 +1776,7 @@ elif step == 4:
             del st.session_state[k]
         st.rerun()
 
-    left, right = st.columns([1.7, 1])
+    left, right = st.container(key="stack_q").columns([1.7, 1])
     with left:
         tabs = st.tabs([d["name"] for d in domains])
         for tab, d in zip(tabs, domains):
@@ -1744,7 +1830,7 @@ elif step == 5:
                    "GROQ_API_KEY or HF_TOKEN in the app's Secrets to enable "
                    "AI extraction.")
 
-    left, right = st.columns([1, 1.4])
+    left, right = st.container(key="split_s5").columns([1, 1.4])
     with left:
         with st.container(border=True):
             up = st.file_uploader("SOC 2 / SOC 3 report (PDF)", type=["pdf"])
@@ -1874,8 +1960,10 @@ elif step == 5:
             for doc in loaded:
                 for cid, (status, snip, note) in store[doc]["results"].items():
                     iso, tsc = clause_refs(cid)
-                    rows += ("<tr><td><b>%s</b> · %s</td><td>%s</td><td>%s</td>"
-                             "<td class='q'>%s</td></tr>"
+                    rows += ("<tr><td data-l='Clause'><b>%s</b> · %s</td>"
+                             "<td data-l='Status'>%s</td>"
+                             "<td data-l='Maps to'>%s</td>"
+                             "<td class='q' data-l='Evidence'>%s</td></tr>"
                              % (doc, ct.CLAUSE[cid][2], status_pill(status),
                                 "<span class='ref'>ISO %s<br>%s</span>"
                                 % (", ".join(iso), ", ".join(tsc)),
@@ -1940,7 +2028,7 @@ elif step == 6:
                residual, band))
 
     # ---- Row 1: coverage + residual ----
-    c1, c2 = st.columns([2.2, 1])
+    c1, c2 = st.container(key="stack_d1").columns([2.2, 1])
     with c1:
         ring = donut([(n_cov, "#1FAF5A"), (len(crit_rows) - n_cov, "#F0405A")],
                      "%d%%" % cov_pct, "Coverage", size=200, stroke=22)
@@ -1994,7 +2082,7 @@ elif step == 6:
         html(card("Residual Risk", body, icon("shield")))
 
     # ---- Row 2: vendor profile + questionnaire ----
-    p1, p2 = st.columns([1, 1.3])
+    p1, p2 = st.container(key="stack_d2").columns([1, 1.3])
     with p1:
         end = a.get("contract_end")
         renew = ("%d days" % (end - TODAY).days if end and end >= TODAY
@@ -2043,7 +2131,7 @@ elif step == 6:
         html(card("Control questionnaire", body, icon("grid")))
 
     # ---- Row 3: four small cards ----
-    d1, d2, d3, d4 = st.columns(4)
+    d1, d2, d3, d4 = st.container(key="grid4").columns(4)
     with d1:
         body = ""
         for i, (label, pts) in enumerate(adjustments):
@@ -2073,7 +2161,7 @@ elif step == 6:
         svg = svg_img("<svg width='%d' height='%d' viewBox='0 0 %d %d'><line "
                       "x1='20' y1='%d' x2='%d' y2='%d' stroke='#E5E7EB'/>%s"
                       "</svg>" % (w, h, w, h, h - 20, w - 10, h - 20, cols),
-                      width="100%")
+                      width="min(100%, 260px)")
         html(card("Risk reduction", svg + legend(
             "Reduced by controls", "−%d pts" % (a["inherent"] - residual),
             "#1FAF5A") + how("Black bar = inherent (before controls); "
@@ -2109,7 +2197,7 @@ elif step == 6:
          "%d unified controls, each scored automatically from every source "
          "of evidence: contract clauses, questionnaire answers, intake and "
          "the SOC 2 report.</div>" % len(matrix))
-    m1, m2, m3 = st.columns(3)
+    m1, m2, m3 = st.container(key="grid3").columns(3)
     for col, key, title, names in ((m1, "iso", "ISO 27001:2022 Annex A",
                                     ct.ISO),
                                    (m2, "tsc", "SOC 2 Trust Services Criteria",
@@ -2183,12 +2271,15 @@ elif step == 6:
         for r in matrix:
             if r["status"] not in (st_pick or []):
                 continue
-            body += ("<tr><td><span class='ref'>%s</span><br><b>%s</b></td>%s%s"
-                     "<td>%s</td><td>%s</td></tr>"
+            body += ("<tr><td data-l='Control'><span class='ref'>%s</span>"
+                     "<br><b>%s</b></td>%s%s<td data-l='Evidence'>%s</td>"
+                     "<td data-l='Status'>%s</td></tr>"
                      % (r["id"], r["name"],
-                        "<td>%s</td>" % refs_cell(r["iso"], ct.ISO)
+                        "<td data-l='ISO 27001:2022'>%s</td>"
+                        % refs_cell(r["iso"], ct.ISO)
                         if show_iso else "",
-                        "<td>%s</td>" % refs_cell(r["tsc"], ct.TSC)
+                        "<td data-l='SOC 2 TSC'>%s</td>"
+                        % refs_cell(r["tsc"], ct.TSC)
                         if show_tsc else "",
                         "".join(chip(*e) for e in r["evidence"]),
                         status_pill(r["status"]) + (
@@ -2239,7 +2330,7 @@ elif step == 6:
     elif rta == "No" and band in ("High", "Critical"):
         rec += " Make a right-to-audit clause a condition of the contract."
 
-    f1, f2 = st.columns([2.2, 1])
+    f1, f2 = st.container(key="stack_d3").columns([2.2, 1])
     with f1:
         rows = "".join(
             "<div class='find'><span class='sev' style='background:%s'>%s"
@@ -2360,7 +2451,7 @@ elif step == 6:
                            file_name="soc2_eval_%s.md" % fname,
                            mime="text/markdown", use_container_width=True)
 
-    c1, _, c2 = st.columns([1, 2, 1])
+    c1, _, c2 = st.container(key="btnrow_end").columns([1, 2, 1])
     if c1.button("← Back", use_container_width=True):
         goto(5)
     if c2.button("Start a new assessment", use_container_width=True):
